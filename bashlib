@@ -1,72 +1,66 @@
 #!/usr/bash
 
 # $Id$
-# Author:     darren chamberlain <darren@sevenroot.org>
-# Co-Author:  Paul Bournival <paulb@boston.com>
-# Source:     $Source$
-# $Revision$
-
+# Author:     darren chamberlain <dlc@users.sourceforge.net>
+# Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
+#
 # bashlib is used by sourcing it at the beginning of scripts that
 # needs its functionality (by using the `.' or `source' commands).
-# It inserts cookies and form elements into the current environment.
-# These elements can be access through their given names with either
-# COOKIE_ or FORM_ prepended to the name (the given names are the names
-# of the form elements from the HTML page that calls the script or
-# the name the cookie was given when set).
 
 # Requires the following standard GNU utilities:
-#  . gawk	http://www.gnu.org/software/textutils/textutils.html
-#  . bc		http://www.gnu.org/software/bc/bc.html
-#  . cut	http://www.gnu.org/software/textutils/textutils.html
-#  . sed	http://www.gnu.org/software/sed/sed.html
-#  . tr		http://www.gnu.org/software/textutils/textutils.html
+_awk=/usr/bin/awk
+_bc=/usr/bin/bc
+_cat=/usr/bin/cat
+_cut=/bin/cut
+_date=/bin/date
+_echo=/bin/echo
+_egrep=/usr/bin/egrep
+_env=/usr/bin/env
+_grep=/usr/bin/grep
+_printf=/usr/bin/printf
+_sed=/usr/bin/sed
+_tr=/usr/bin/tr
 
-# Helper functions
+# You should be sure that they are all pointing to the correct places
+# I should have a configure script that does all this stuff.
+
+#
+# Set version number
+#
+VERSION=$(${_echo} '$Revision$' | ${_awk} '{print $2}')
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Initialization stuff begins here. These things run immediately, and
+# do the parameter/cookie parsing.
+#
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # Global debug flag. Set to 0 to disable debugging throughout the lib
 DEBUG=0
 
-# capture stdin for POST methods. POST requests don't come in
+# capture stdin for POST methods. POST requests don't always come in
 # with a newline attached, so we use cat to grab stdin and append a newline.
 # This is a wonderful hack, and thanks to paulb.
-STDIN=$(cat)
+STDIN=$(${_cat})
 if [ -n "${STDIN}" ]; then
-    QUERY_STRING="${STDIN}&${QUERY_STRING}"
+  QUERY_STRING="${STDIN}&${QUERY_STRING}"
 fi
-
-# stderr takes two (or more) arguments: the log level (info by default)
-# and the message itself. It gets written to the error_log in the same
-# way as the standard Apache loggers.
-function stderr {
-    # If the global debug flag is not set, the do not echo debug
-    # statements to the error log
-    if [ "${DEBUG}" = "0" ]; then
-        return 0
-    fi
-
-    echo "[$(date)] [info] [client ${REMOTE_ADDR}] $@" 1>&2
-}
 
 # Handle GET and POST requests... (the QUERY_STRING will be set)
 if [ -n "${QUERY_STRING}" ]; then 
-    for F in $(echo ${QUERY_STRING} | tr "&" "\012") ; do
-        Q=$(echo ${F} | sed -e '/%2C/s//\,/'   \
-                            -e '/%21/s//\!/'   \
-                            -e '/%34/s//\"/'   \
-                            -e '/%40/s//\(/'   \
-                            -e '/%41/s//\)/'   \
-                            -e '/%91/s//\[/'   \
-                            -e '/%92/s//\\/'   \
-                            -e '/%93/s//\]/'   \
-                            -e '/%123/s//\{/'  \
-                            -e '/%124/s//\|/'  \
-                            -e '/%125/s//\}/'    )
-        KEY=${Q%%=*}
-        VALUE=${Q##*=}
-        VALUE=$(echo ${VALUE} | tr "+" " ")
-    
-        eval "export FORM_${KEY}='${VALUE}'"
-    done
+  for Q in $(${_echo} ${QUERY_STRING} | ${_tr} "&" "\012") ; do
+    # get the name of the key, and decode it
+    key=${Q%%=*}
+    key=$(${_echo} ${key} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
+    key=$(${_printf} ${key})
+
+    # get the value and decode it
+    value=${Q##*=}
+    value=$(${_echo} ${value} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
+    value=$(${_printf} ${value})
+
+    eval "export FORM_${key}='${value}'"
+  done
 fi
 
 # this section works identically to the query string parsing code,
@@ -74,21 +68,22 @@ fi
 # environment with the prefix COOKIE_ rather than FORM_. This is to
 # help distinguish them from the other variables that get set
 # automatically.
-if [ -n "${HTTP_COOKIE}" ]; then
-    WORK="${HTTP_COOKIE};"
-    WORK=$(echo ${WORK} | sed -e 's/ /%20/g')
-    while [ "${WORK}" != "" ]; do
-        THIS=$(echo ${WORK} | cut -d';' -f 1)
-        REST=$(echo ${WORK} | cut -d';' -f 2-)
-    
-        KEY=${THIS%%=*}
-        VAL=${THIS##*=}
-        KEY=$(echo ${KEY} | sed -e 's/-/_/g' -e 's/^%20//g')
-    
-        eval "export COOKIE_${KEY}=${VAL}"
+if [ -n "${HTTP_COOKIE}" ]; then 
+  for Q in $(${_echo} ${HTTP_COOKIE} | ${_sed} -e 's/; / /g'); do
+    # Strip trailing ; off the value
+    Q=$(${_echo} ${Q} | ${_sed} -e 's/;$//')
 
-        stderr "COOKIE_${KEY} = ${VAL}"
-    
-        WORK=${REST}
-    done
+    # get the name of the key, and decode it
+    name=${Q%%=*}
+    name=$(${_echo} ${name} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
+    name=$(${_echo} ${name} | ${_tr} -d ".-")
+    name=$(${_printf} ${name})
+
+    # get the value and decode it
+    value=${Q##*=}
+    value=$(${_echo} ${value} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
+    value=$(${_printf} ${value})
+
+    eval "export COOKIE_${name}='${value}'"
+  done
 fi
