@@ -1,6 +1,7 @@
-
 # You should be sure that they are all pointing to the correct places
 # I should have a configure script that does all this stuff.
+
+PATH=/bin:/usr/bin
 
 #
 # Set version number
@@ -10,7 +11,6 @@ VERSION=$(${_echo} '$Revision$' | ${_awk} '{print $2}')
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and
 # do the parameter/cookie parsing.
-#
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # Global debug flag. Set to 0 to disable debugging throughout the lib
@@ -26,54 +26,55 @@ fi
 
 # Handle GET and POST requests... (the QUERY_STRING will be set)
 if [ -n "${QUERY_STRING}" ]; then 
-  for Q in $(${_echo} ${QUERY_STRING} | ${_tr} "&" "\012") ; do
-    #
-    # Clear our local variables
-    #
-    name=
-    value=
-    tmpvalue=
-
-    #
-    # Strip trailing ; off the value
-    #
-    Q=$(${_echo} ${Q} | ${_sed} -e 's/;$//')
-
-    #
-    # get the name of the key, and decode it
-    #
-    name=${Q%%=*}
-    name=$(${_echo} ${name} | \
-           ${_sed} -e 's/%\(\)/\\\x/g' | \
-           ${_tr} "+" " ")
-    name=$(${_echo} ${name} | \
-           ${_tr} -d ".-")
-    name=$(${_printf} ${name})
-
-    #
-    # get the value and decode it. This is tricky... printf chokes on
-    # hex values in the form \xNN when there is another hex-ish value
-    # (i.e., a-fA-F) immediately after the first two. My (horrible)
-    # solution is to put a space aftet the \xNN, give the value to
-    # printf, and then remove it.
-    #
-    tmpvalue=${Q#*=}
-    tmpvalue=$(${_echo} ${tmpvalue} | \
-               ${_sed} -e 's/%\(..\)/\\\x\1 /g')
-    #echo "Intermediate \$value: ${tmpvalue}" 1>&2
-
-    #
-    # Iterate through tmpvalue and printf each string, and append it to
-    # value
-    #
-    for i in ${tmpvalue}; do
-        g=$(${_printf} ${i})
-        value="${value}${g}"
+  # name=value params, separated by either '&' or ';'
+  if echo ${QUERY_STRING} | grep '=' >/dev/null ; then
+    for Q in $(${_echo} ${QUERY_STRING} | ${_tr} ";&" "\012") ; do
+      #
+      # Clear our local variables
+      #
+      unset name
+      unset value
+      unset tmpvalue
+  
+      #
+      # get the name of the key, and decode it
+      #
+      name=${Q%%=*}
+      name=$(${_echo} ${name} | \
+             ${_sed} -e 's/%\(\)/\\\x/g' | \
+             ${_tr} "+" " ")
+      name=$(${_echo} ${name} | \
+             ${_tr} -d ".-")
+      name=$(${_printf} ${name})
+  
+      #
+      # get the value and decode it. This is tricky... printf chokes on
+      # hex values in the form \xNN when there is another hex-ish value
+      # (i.e., a-fA-F) immediately after the first two. My (horrible)
+      # solution is to put a space aftet the \xNN, give the value to
+      # printf, and then remove it.
+      #
+      tmpvalue=${Q#*=}
+      tmpvalue=$(${_echo} ${tmpvalue} | \
+                 ${_sed} -e 's/%\(..\)/\\\x\1 /g')
+      #echo "Intermediate \$value: ${tmpvalue}" 1>&2
+  
+      #
+      # Iterate through tmpvalue and printf each string, and append it to
+      # value
+      #
+      for i in ${tmpvalue}; do
+          g=$(${_printf} ${i})
+          value="${value}${g}"
+      done
+      #value=$(echo ${value})
+  
+      eval "export FORM_${name}='${value}'"
     done
-    value=$(echo ${value})
-
-    eval "export FORM_${name}='${value}'"
-  done
+  else # keywords: foo.cgi?a+b+c
+    Q=$(echo ${QUERY_STRING} | tr '+' ' ')
+    eval "export KEYWORDS='${Q}'"
+  fi
 fi
 
 #
@@ -84,7 +85,7 @@ fi
 # automatically.
 #
 if [ -n "${HTTP_COOKIE}" ]; then 
-  for Q in $(${_echo} ${HTTP_COOKIE} | ${_sed} -e 's/; / /g'); do
+  for Q in ${HTTP_COOKIE}; do
     #
     # Clear our local variables
     #
@@ -95,7 +96,7 @@ if [ -n "${HTTP_COOKIE}" ]; then
     #
     # Strip trailing ; off the value
     #
-    Q=$(${_echo} ${Q} | ${_sed} -e 's/;$//')
+    Q=${Q%;}
 
     #
     # get the name of the key, and decode it
@@ -108,13 +109,8 @@ if [ -n "${HTTP_COOKIE}" ]; then
            ${_tr} -d ".-")
     name=$(${_printf} ${name})
 
-    #
-    # get the value and decode it. This is tricky... printf chokes on
-    # hex values in the form \xNN when there is another hex-ish value
-    # (i.e., a-fA-F) immediately after the first two. My (horrible)
-    # solution is to put a space aftet the \xNN, give the value to
-    # printf, and then remove it.
-    #
+    # Decode the cookie value. See the parameter section above for
+    # an explanation of what this is doing.
     tmpvalue=${Q#*=}
     tmpvalue=$(${_echo} ${tmpvalue} | \
                ${_sed} -e 's/%\(..\)/\\\x\1 /g')
@@ -128,7 +124,7 @@ if [ -n "${HTTP_COOKIE}" ]; then
         g=$(${_printf} ${i})
         value="${value}${g}"
     done
-    value=$(echo ${value})
+    #value=$(echo ${value})
 
     #
     # Export COOKIE_${name} into the environment
@@ -200,3 +196,36 @@ function cookie {
   unset name
   unset value
 }
+
+# keywords returns a list of keywords. This is only set when the script is
+# called with an ISINDEX form (these are pretty rare nowadays).
+function keywords {
+  echo ${KEYWORDS}
+}
+
+function set_cookie {
+  local name=$1
+  shift
+  local value=$*
+  bashlib_cookies="${bashlib_cookies}; ${name}=${value}"
+
+  bashlib_cookies=${bashlib_cookies#;}
+
+  cookie $name $value
+}
+
+#
+# send_redirect takes a URI and redirects the browser to that uri, exiting
+# the script along the way.
+#
+function send_redirect {
+  local uri
+  if [ $# -eq 1 ]; then
+    uri=$1
+  else
+    uri="http://${SERVER_NAME}/${SCRIPT_NAME}"
+  fi
+  echo "Location: ${uri}"
+  echo ""
+}
+

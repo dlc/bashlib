@@ -25,7 +25,6 @@ if [ -r ${bashlib_in} ]; then
 cat <<BASHLIB >${bashlib_out}
 #!/bin/bash
 
-# \$Id$
 # Author:     darren chamberlain <dlc@users.sourceforge.net>
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
 #
