@@ -27,9 +27,6 @@ AC_SUBST(bashlib_version)dnl
 bashlib_version=0.4
 
 AC_INIT(bashlib.in)
-dnl AM_INIT_AUTOMAKE("bashlib", "0.3")
-
-dnl AC_PREFIX_DEFAULT(/usr/local)
 
 AC_PATH_PROG(AWK,     awk,     "")
 AC_PATH_PROG(CAT,     cat,     "")
