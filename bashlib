@@ -49,41 +49,113 @@ fi
 # Handle GET and POST requests... (the QUERY_STRING will be set)
 if [ -n "${QUERY_STRING}" ]; then 
   for Q in $(${_echo} ${QUERY_STRING} | ${_tr} "&" "\012") ; do
+    #
+    # Clear our local variables
+    #
+    name=
+    value=
+    tmpvalue=
+
+    #
+    # Strip trailing ; off the value
+    #
+    Q=$(${_echo} ${Q} | ${_sed} -e 's/;$//')
+
+    #
     # get the name of the key, and decode it
-    key=${Q%%=*}
-    key=$(${_echo} ${key} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
-    key=$(${_printf} ${key})
+    #
+    name=${Q%%=*}
+    name=$(${_echo} ${name} | \
+           ${_sed} -e 's/%\(\)/\\\x/g' | \
+           ${_tr} "+" " ")
+    name=$(${_echo} ${name} | \
+           ${_tr} -d ".-")
+    name=$(${_printf} ${name})
 
-    # get the value and decode it
-    value=${Q##*=}
-    value=$(${_echo} ${value} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
-    value=$(${_printf} ${value})
+    #
+    # get the value and decode it. This is tricky... printf chokes on
+    # hex values in the form \xNN when there is another hex-ish value
+    # (i.e., a-fA-F) immediately after the first two. My (horrible)
+    # solution is to put a space aftet the \xNN, give the value to
+    # printf, and then remove it.
+    #
+    tmpvalue=${Q#*=}
+    tmpvalue=$(${_echo} ${tmpvalue} | \
+               ${_sed} -e 's/%\(..\)/\\\x\1 /g')
+    #echo "Intermediate \$value: ${tmpvalue}" 1>&2
 
-    eval "export FORM_${key}='${value}'"
+    #
+    # Iterate through tmpvalue and printf each string, and append it to
+    # value
+    #
+    for i in ${tmpvalue}; do
+        g=$(${_printf} ${i})
+        value="${value}${g}"
+    done
+    value=$(echo ${value})
+
+    eval "export FORM_${name}='${value}'"
   done
 fi
 
+#
 # this section works identically to the query string parsing code,
 # with the (obvious) exception that variables are stuck into the
 # environment with the prefix COOKIE_ rather than FORM_. This is to
 # help distinguish them from the other variables that get set
 # automatically.
+#
 if [ -n "${HTTP_COOKIE}" ]; then 
   for Q in $(${_echo} ${HTTP_COOKIE} | ${_sed} -e 's/; / /g'); do
+    #
+    # Clear our local variables
+    #
+    name=
+    value=
+    tmpvalue=
+
+    #
     # Strip trailing ; off the value
+    #
     Q=$(${_echo} ${Q} | ${_sed} -e 's/;$//')
 
+    #
     # get the name of the key, and decode it
+    #
     name=${Q%%=*}
-    name=$(${_echo} ${name} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
-    name=$(${_echo} ${name} | ${_tr} -d ".-")
+    name=$(${_echo} ${name} | \
+           ${_sed} -e 's/%\(\)/\\\x/g' | \
+           ${_tr} "+" " ")
+    name=$(${_echo} ${name} | \
+           ${_tr} -d ".-")
     name=$(${_printf} ${name})
 
-    # get the value and decode it
-    value=${Q##*=}
-    value=$(${_echo} ${value} | ${_sed} -e 's/%\(\)/\\\x/g' | ${_tr} "+" " ")
-    value=$(${_printf} ${value})
+    #
+    # get the value and decode it. This is tricky... printf chokes on
+    # hex values in the form \xNN when there is another hex-ish value
+    # (i.e., a-fA-F) immediately after the first two. My (horrible)
+    # solution is to put a space aftet the \xNN, give the value to
+    # printf, and then remove it.
+    #
+    tmpvalue=${Q#*=}
+    tmpvalue=$(${_echo} ${tmpvalue} | \
+               ${_sed} -e 's/%\(..\)/\\\x\1 /g')
+    #echo "Intermediate \$value: ${tmpvalue}" 1>&2
 
+    #
+    # Iterate through tmpvalue and printf each string, and append it to
+    # value
+    #
+    for i in ${tmpvalue}; do
+        g=$(${_printf} ${i})
+        value="${value}${g}"
+    done
+    value=$(echo ${value})
+
+    #
+    # Export COOKIE_${name} into the environment
+    #
+    #echo "exporting COOKIE_${name}=${value}" 1>&2
     eval "export COOKIE_${name}='${value}'"
   done
 fi
@@ -113,26 +185,40 @@ function version_html {
 #   that name.
 #
 function param {
-  echo "function param called with arguments $*" 1>&2
+  local name
+  local value
   if [ $# -eq 1 ]; then
-    local name=$1
+    name=$1
     name=$(echo ${name} | ${_sed} -e 's/FORM_//')
-    value=$(${_env} | ${_grep} '^FORM_' | ${_grep} ${name} | ${_sed} -e 's/FORM_//' | ${_awk} -F= '{print $2}')
+    value=$(${_env} | ${_grep} "^FORM_${name}" | ${_sed} -e 's/FORM_//' | ${_cut} -d= -f2-)
   elif [ $# -gt 1 ]; then
-    local name=$1
+    name=$1
     shift
-    export "FORM_${name}=$*"
+    eval "export 'FORM_${name}=$*'"
   else
-    value=$(${_env} | ${_grep} '^FORM_' | ${_sed} -e 's/FORM_//' | ${_awk} -F= '{print $1}')
+    value=$(${_env} | ${_grep} '^FORM_' | ${_sed} -e 's/FORM_//' | ${_cut} -d= -f1)
   fi
   echo ${value}
+  unset name
+  unset value
 }
 
-
-
-
-
-
-
-
-
+# cookie function. Same explanation as param
+function cookie {
+  local name
+  local value
+  if [ $# -eq 1 ]; then
+    name=$1
+    name=$(echo ${name} | ${_sed} -e 's/COOKIE_//')
+    value=$(${_env} | ${_grep} "^COOKIE_${name}" | ${_sed} -e 's/COOKIE_//' | ${_cut} -d= -f2-)
+  elif [ $# -gt 1 ]; then
+    name=$1
+    shift
+    eval "export 'COOKIE_${name}=$*'"
+  else
+    value=$(${_env} | ${_grep} '^COOKIE_' | ${_sed} -e 's/COOKIE_//' | ${_cut} -d= -f1)
+  fi
+  echo ${value}
+  unset name
+  unset value
+}
