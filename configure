@@ -7,6 +7,15 @@ required_progs="awk bc cat cut date echo env grep printf sed tr"
 bashlib_in=bashlib.in
 bashlib_out=bashlib
 
+case "$*" in
+  --prefix=*)
+    #PREFIX=$1
+    PREFIX=${1##*=}
+    ;;
+  *)
+    ;;
+esac
+
 for i in ${required_progs}; do
   if [ -x /bin/${i} ]; then
     eval "export FOUND_${i}=/bin/${i}"
@@ -40,3 +49,16 @@ BASHLIB
   done
 fi
 cat ${bashlib_in} >> ${bashlib_out}
+
+cat <<MAKEFILE > Makefile
+PREFIX = ${PREFIX}
+
+all:
+	@echo "Nothing to do, just make install"
+
+install:
+	@/usr/bin/install bashlib \$(PREFIX)/bin
+
+clean:
+	rm Makefile bashlib
+MAKEFILE
