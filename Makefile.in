@@ -1,0 +1,50 @@
+# Makefile for bashlib
+# ----------------------------------------------------------------------
+# $Id$
+# @configure_input@
+# ----------------------------------------------------------------------
+# bashlib 
+# Copyright (C) 2002 darren chamberlain <dlc@users.sourceforge.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
+# ----------------------------------------------------------------------
+PREFIX = @prefix@
+VERSION = @bashlib_version@
+
+all:
+	@@ECHO@ Nothing to build. Run make install.
+
+install:
+	@INSTALL@ bashlib $(PREFIX)/bin
+
+dist:
+	@MKDIR@ bashlib-$(VERSION)
+	@CP@ configure bashlib-$(VERSION)/
+	@CP@ bashlib.in bashlib-$(VERSION)/
+	@CP@ Makefile.in bashlib-$(VERSION)/
+	@CP@ INSTALL bashlib-$(VERSION)/
+	@CP@ COPYING bashlib-$(VERSION)/
+	cd bashlib-$(VERSION); ln -s INSTALL README
+	@TAR@ cf bashlib-$(VERSION).tar bashlib-$(VERSION)
+	@GZIP@ --best bashlib-$(VERSION).tar
+	@RM@ -rf bashlib-$(VERSION)
+
+clean:
+	@RM@ -f Makefile bashlib config.cache config.log config.status 
+
+maintainer-clean:
+	$(MAKE) clean
+	@RM@ -f configure
+	@RM@ -f bashlib-$(VERSION).tar.gz

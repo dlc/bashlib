@@ -1,12 +1,17 @@
-# You should be sure that they are all pointing to the correct places
-# I should have a configure script that does all this stuff.
+#!/bin/bash
+
+# Author:     darren chamberlain <dlc@users.sourceforge.net>
+# Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
+#
+# bashlib is used by sourcing it at the beginning of scripts that
+# needs its functionality (by using the . or source commands).
 
 PATH=/bin:/usr/bin
 
 #
 # Set version number
 #
-VERSION=$(${_echo} '$Revision$' | ${_awk} '{print $2}')
+VERSION=$(@ECHO@ '$Revision$' | @AWK@ '{print $2}')
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and
@@ -19,7 +24,7 @@ DEBUG=0
 # capture stdin for POST methods. POST requests don't always come in
 # with a newline attached, so we use cat to grab stdin and append a newline.
 # This is a wonderful hack, and thanks to paulb.
-STDIN=$(${_cat})
+STDIN=$(@CAT@)
 if [ -n "${STDIN}" ]; then
   QUERY_STRING="${STDIN}&${QUERY_STRING}"
 fi
@@ -28,7 +33,7 @@ fi
 if [ -n "${QUERY_STRING}" ]; then 
   # name=value params, separated by either '&' or ';'
   if echo ${QUERY_STRING} | grep '=' >/dev/null ; then
-    for Q in $(${_echo} ${QUERY_STRING} | ${_tr} ";&" "\012") ; do
+    for Q in $(@ECHO@ ${QUERY_STRING} | @TR@ ";&" "\012") ; do
       #
       # Clear our local variables
       #
@@ -40,12 +45,12 @@ if [ -n "${QUERY_STRING}" ]; then
       # get the name of the key, and decode it
       #
       name=${Q%%=*}
-      name=$(${_echo} ${name} | \
-             ${_sed} -e 's/%\(\)/\\\x/g' | \
-             ${_tr} "+" " ")
-      name=$(${_echo} ${name} | \
-             ${_tr} -d ".-")
-      name=$(${_printf} ${name})
+      name=$(@ECHO@ ${name} | \
+             @SED@ -e 's/%\(\)/\\\x/g' | \
+             @TR@ "+" " ")
+      name=$(@ECHO@ ${name} | \
+             @TR@ -d ".-")
+      name=$(@PRINTF@ ${name})
   
       #
       # get the value and decode it. This is tricky... printf chokes on
@@ -55,8 +60,8 @@ if [ -n "${QUERY_STRING}" ]; then
       # printf, and then remove it.
       #
       tmpvalue=${Q#*=}
-      tmpvalue=$(${_echo} ${tmpvalue} | \
-                 ${_sed} -e 's/%\(..\)/\\\x\1 /g')
+      tmpvalue=$(@ECHO@ ${tmpvalue} | \
+                 @SED@ -e 's/%\(..\)/\\\x\1 /g')
       #echo "Intermediate \$value: ${tmpvalue}" 1>&2
   
       #
@@ -64,7 +69,7 @@ if [ -n "${QUERY_STRING}" ]; then
       # value
       #
       for i in ${tmpvalue}; do
-          g=$(${_printf} ${i})
+          g=$(@PRINTF@ ${i})
           value="${value}${g}"
       done
       #value=$(echo ${value})
@@ -102,18 +107,18 @@ if [ -n "${HTTP_COOKIE}" ]; then
     # get the name of the key, and decode it
     #
     name=${Q%%=*}
-    name=$(${_echo} ${name} | \
-           ${_sed} -e 's/%\(\)/\\\x/g' | \
-           ${_tr} "+" " ")
-    name=$(${_echo} ${name} | \
-           ${_tr} -d ".-")
-    name=$(${_printf} ${name})
+    name=$(@ECHO@ ${name} | \
+           @SED@ -e 's/%\(\)/\\\x/g' | \
+           @TR@ "+" " ")
+    name=$(@ECHO@ ${name} | \
+           @TR@ -d ".-")
+    name=$(@PRINTF@ ${name})
 
     # Decode the cookie value. See the parameter section above for
     # an explanation of what this is doing.
     tmpvalue=${Q#*=}
-    tmpvalue=$(${_echo} ${tmpvalue} | \
-               ${_sed} -e 's/%\(..\)/\\\x\1 /g')
+    tmpvalue=$(@ECHO@ ${tmpvalue} | \
+               @SED@ -e 's/%\(..\)/\\\x\1 /g')
     #echo "Intermediate \$value: ${tmpvalue}" 1>&2
 
     #
@@ -121,7 +126,7 @@ if [ -n "${HTTP_COOKIE}" ]; then
     # value
     #
     for i in ${tmpvalue}; do
-        g=$(${_printf} ${i})
+        g=$(@PRINTF@ ${i})
         value="${value}${g}"
     done
     #value=$(echo ${value})
@@ -163,14 +168,14 @@ function param {
   local value
   if [ $# -eq 1 ]; then
     name=$1
-    name=$(echo ${name} | ${_sed} -e 's/FORM_//')
-    value=$(${_env} | ${_grep} "^FORM_${name}" | ${_sed} -e 's/FORM_//' | ${_cut} -d= -f2-)
+    name=$(echo ${name} | @SED@ -e 's/FORM_//')
+    value=$(@ENV@ | @GREP@ "^FORM_${name}" | @SED@ -e 's/FORM_//' | @CUT@ -d= -f2-)
   elif [ $# -gt 1 ]; then
     name=$1
     shift
     eval "export 'FORM_${name}=$*'"
   else
-    value=$(${_env} | ${_grep} '^FORM_' | ${_sed} -e 's/FORM_//' | ${_cut} -d= -f1)
+    value=$(@ENV@ | @GREP@ '^FORM_' | @SED@ -e 's/FORM_//' | @CUT@ -d= -f1)
   fi
   echo ${value}
   unset name
@@ -183,14 +188,14 @@ function cookie {
   local value
   if [ $# -eq 1 ]; then
     name=$1
-    name=$(echo ${name} | ${_sed} -e 's/COOKIE_//')
-    value=$(${_env} | ${_grep} "^COOKIE_${name}" | ${_sed} -e 's/COOKIE_//' | ${_cut} -d= -f2-)
+    name=$(echo ${name} | @SED@ -e 's/COOKIE_//')
+    value=$(@ENV@ | @GREP@ "^COOKIE_${name}" | @SED@ -e 's/COOKIE_//' | @CUT@ -d= -f2-)
   elif [ $# -gt 1 ]; then
     name=$1
     shift
     eval "export 'COOKIE_${name}=$*'"
   else
-    value=$(${_env} | ${_grep} '^COOKIE_' | ${_sed} -e 's/COOKIE_//' | ${_cut} -d= -f1)
+    value=$(@ENV@ | @GREP@ '^COOKIE_' | @SED@ -e 's/COOKIE_//' | @CUT@ -d= -f1)
   fi
   echo ${value}
   unset name
