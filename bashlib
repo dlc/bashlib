@@ -87,3 +87,52 @@ if [ -n "${HTTP_COOKIE}" ]; then
     eval "export COOKIE_${name}='${value}'"
   done
 fi
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# functions and all that groovy stuff
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+#
+# Shameless plug, advertises verion.
+function version {
+  echo "bashlib, version ${VERSION}"
+}
+
+function version_html {
+  echo -n "<a href=\"http://sevenroot.org/software/bashlib/\">bashlib</a>,"
+  echo "version ${VERSION}"
+}
+
+#
+# Parameter function.
+# * When called with no arguments, returns a list of parameters that
+#   were passed in.
+# * When called with one argument, returns the value of that parameter
+#   (if any)
+# * When called with more than one argument, assumes that the first is a
+#   paramter name and the rest are values to be assigned to a paramter of
+#   that name.
+#
+function param {
+  echo "function param called with arguments $*" 1>&2
+  if [ $# -eq 1 ]; then
+    local name=$1
+    name=$(echo ${name} | ${_sed} -e 's/FORM_//')
+    value=$(${_env} | ${_grep} '^FORM_' | ${_grep} ${name} | ${_sed} -e 's/FORM_//' | ${_awk} -F= '{print $2}')
+  elif [ $# -gt 1 ]; then
+    local name=$1
+    shift
+    export "FORM_${name}=$*"
+  else
+    value=$(${_env} | ${_grep} '^FORM_' | ${_sed} -e 's/FORM_//' | ${_awk} -F= '{print $1}')
+  fi
+  echo ${value}
+}
+
+
+
+
+
+
+
+
+
