@@ -1,25 +1,3 @@
-#!/usr/bash
-
-# $Id$
-# Author:     darren chamberlain <dlc@users.sourceforge.net>
-# Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
-#
-# bashlib is used by sourcing it at the beginning of scripts that
-# needs its functionality (by using the `.' or `source' commands).
-
-# Requires the following standard GNU utilities:
-_awk=/usr/bin/awk
-_bc=/usr/bin/bc
-_cat=/usr/bin/cat
-_cut=/bin/cut
-_date=/bin/date
-_echo=/bin/echo
-_egrep=/usr/bin/egrep
-_env=/usr/bin/env
-_grep=/usr/bin/grep
-_printf=/usr/bin/printf
-_sed=/usr/bin/sed
-_tr=/usr/bin/tr
 
 # You should be sure that they are all pointing to the correct places
 # I should have a configure script that does all this stuff.
