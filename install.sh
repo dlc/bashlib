@@ -30,7 +30,7 @@ cat <<BASHLIB >${bashlib_out}
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
 #
 # bashlib is used by sourcing it at the beginning of scripts that
-# needs its functionality (by using the `.' or `source' commands).
+# needs its functionality (by using the . or source commands).
 
 # Requires the following standard GNU utilities:
 BASHLIB
