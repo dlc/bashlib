@@ -44,7 +44,7 @@ dist:
 clean:
 	@RM@ -f Makefile bashlib config.cache config.log config.status 
 
-maintainer-clean:
+cvs-clean:
 	$(MAKE) clean
 	@RM@ -f configure
 	@RM@ -f bashlib-$(VERSION).tar.gz
