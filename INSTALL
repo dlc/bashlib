@@ -1,16 +1,11 @@
-bashlib 0.2
+bashlib 0.5
 
 Installation of bashlib is relatively straightforward:
 
-  # gunzip -c bashlib-0.2.tar.gz | tar xf -
-  # cd bashlib-0.2
-  # sh install.sh
-  # cp bashlib /path/to/bashlib
-
-Copying the bashlib script (all the other files in the directory are
-extraneous once the install.sh script is run and bashlib is copied)
-is all that is required to install. Maybe version 0.3 will have
-a Makefile.
+  # gunzip -c bashlib-0.5.tar.gz | tar xf -
+  # cd bashlib-0.5
+  # ./configure
+  # make install
 
 Using bashlib in your CGI scripts is as simple as beginning your
 scripts with:
@@ -55,4 +50,4 @@ TODO
 
 AUTHOR
 
-darren chamberlain <dlc@users.sourceforge.net>
+darren chamberlain <dlc@sevenroot.org>

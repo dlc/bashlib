@@ -4,7 +4,7 @@
 # @configure_input@
 # ----------------------------------------------------------------------
 # bashlib 
-# Copyright (C) 2002 darren chamberlain <dlc@users.sourceforge.net>
+# Copyright (C) 2002-2005 darren chamberlain <dlc@sevenroot.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ PREFIX = @prefix@
 VERSION = @bashlib_version@
 
 all:
-	@@ECHO@ Nothing to build. Run make install.
+	./configure
 
 install:
 	@INSTALL@ bashlib $(PREFIX)/bin
@@ -48,3 +48,6 @@ cvs-clean:
 	$(MAKE) clean
 	@RM@ -f configure
 	@RM@ -f bashlib-$(VERSION).tar.gz
+
+distclean:
+	$(MAKE) cvs-clean
