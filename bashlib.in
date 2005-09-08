@@ -9,6 +9,7 @@
 #  * add safe_param() function with XSS and shell-invocation prevention
 #  * add extra "| tr -d '$`'" sanity check to name decoding to prevent shell
 #    invocation of param names.
+#  * ported function defs to be bash/ash compatible
 #######
 
 # bashlib is used by sourcing it at the beginning of scripts that
@@ -152,11 +153,11 @@ fi
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
 # Shameless plug, advertises verion.
-function version {
+version {
   echo "bashlib, version ${VERSION}"
 }
 
-function version_html {
+version_html {
   echo -n "<a href=\"http://sevenroot.org/dlc/2000/12/bashlib\">bashlib</a>,"
   echo "version ${VERSION}"
 }
@@ -171,7 +172,7 @@ function version_html {
 #   paramter name and the rest are values to be assigned to a paramter of
 #   that name.
 #
-function param {
+param() {
   local name
   local value
   if [ $# -eq 1 ]; then
@@ -191,12 +192,12 @@ function param {
 }
 
 # shell invocation and X-site scripting prevention
-function safe_param() {
+safe_param() {
 	param $* | @TR@ -d '$`<>"%;)(&+'"'"
 }
 
 # cookie function. Same explanation as param
-function cookie {
+cookie() {
   local name
   local value
   if [ $# -eq 1 ]; then
@@ -217,11 +218,11 @@ function cookie {
 
 # keywords returns a list of keywords. This is only set when the script is
 # called with an ISINDEX form (these are pretty rare nowadays).
-function keywords {
+keywords() {
   echo ${KEYWORDS}
 }
 
-function set_cookie {
+set_cookie() {
   local name=$1
   shift
   local value=$*
@@ -236,7 +237,7 @@ function set_cookie {
 # send_redirect takes a URI and redirects the browser to that uri, exiting
 # the script along the way.
 #
-function send_redirect {
+send_redirect() {
   local uri
   if [ $# -eq 1 ]; then
     uri=$1
