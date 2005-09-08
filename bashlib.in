@@ -1,8 +1,16 @@
 #!/bin/bash
 
-# Author:     darren chamberlain <dlc@users.sourceforge.net>
+# Author:     darren chamberlain <dlc@sevenroot.org>
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
 #
+
+#######
+# Updated Oct 15 2004 by Tony Clayton <t ny-bashlib@clayt n.ca>
+#  * add safe_param() function with XSS and shell-invocation prevention
+#  * add extra "| tr -d '$`'" sanity check to name decoding to prevent shell
+#    invocation of param names.
+#######
+
 # bashlib is used by sourcing it at the beginning of scripts that
 # needs its functionality (by using the . or source commands).
 
@@ -50,7 +58,7 @@ if [ -n "${QUERY_STRING}" ]; then
              @TR@ "+" " ")
       name=$(@ECHO@ ${name} | \
              @TR@ -d ".-")
-      name=$(@PRINTF@ ${name})
+      name=$(@PRINTF@ ${name} | @TR@ -d '$`')
   
       #
       # get the value and decode it. This is tricky... printf chokes on
@@ -149,7 +157,7 @@ function version {
 }
 
 function version_html {
-  echo -n "<a href=\"http://sevenroot.org/software/bashlib/\">bashlib</a>,"
+  echo -n "<a href=\"http://sevenroot.org/dlc/2000/12/bashlib\">bashlib</a>,"
   echo "version ${VERSION}"
 }
 
@@ -180,6 +188,11 @@ function param {
   echo ${value}
   unset name
   unset value
+}
+
+# shell invocation and X-site scripting prevention
+function safe_param() {
+	param $* | @TR@ -d '$`<>"%;)(&+'"'"
 }
 
 # cookie function. Same explanation as param
