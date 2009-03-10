@@ -20,7 +20,7 @@ PATH=/bin:/usr/bin
 #
 # Set version number
 #
-VERSION=$(@ECHO@ '$Revision$' | @AWK@ '{print $2}')
+VERSION="0.05"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and

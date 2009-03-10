@@ -43,6 +43,7 @@ dist:
 
 clean:
 	@RM@ -f Makefile bashlib config.cache config.log config.status 
+	@RM@ -fr ./autom4te.cache/
 
 cvs-clean:
 	$(MAKE) clean
