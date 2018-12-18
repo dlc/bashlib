@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@BASH@
 
 # Author:     darren chamberlain <dlc@sevenroot.org>
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>

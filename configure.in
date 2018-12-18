@@ -28,6 +28,7 @@ bashlib_version=0.5
 
 AC_INIT(bashlib.in)
 
+AC_PATH_PROG(BASH,    bash,    "")
 AC_PATH_PROG(AWK,     awk,     "")
 AC_PATH_PROG(CAT,     cat,     "")
 AC_PATH_PROG(CUT,     cut,     "")
