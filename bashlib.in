@@ -153,11 +153,11 @@ fi
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
 # Shameless plug, advertises verion.
-version {
+version() {
   echo "bashlib, version ${VERSION}"
 }
 
-version_html {
+version_html() {
   echo -n "<a href=\"http://sevenroot.org/dlc/2000/12/bashlib\">bashlib</a>,"
   echo "version ${VERSION}"
 }
