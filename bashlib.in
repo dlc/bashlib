@@ -20,7 +20,7 @@ PATH=/bin:/usr/bin
 #
 # Set version number
 #
-VERSION="0.05"
+VERSION="0.06"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and
@@ -178,7 +178,7 @@ param() {
   if [ $# -eq 1 ]; then
     name=$1
     name=$(echo ${name} | @SED@ -e 's/FORM_//')
-    value=$(@ENV@ | @GREP@ "^FORM_${name}" | @SED@ -e 's/FORM_//' | @CUT@ -d= -f2-)
+    value=$(@ENV@ | @GREP@ "^FORM_${name}=" | @SED@ -e 's/FORM_//' | @CUT@ -d= -f2-)
   elif [ $# -gt 1 ]; then
     name=$1
     shift
