@@ -186,7 +186,9 @@ param() {
   else
     value=$(@ENV@ | @GREP@ '^FORM_' | @SED@ -e 's/FORM_//' | @CUT@ -d= -f1)
   fi
-  echo ${value}
+  # "+" is URL-encoded as "%2B", web server replaces spaces with "+", replace back,
+  # otherwise safe_param() just removes the "+" sign and looses the space.
+  echo "${value}" | @SED@ -e 's/+/ /'
   unset name
   unset value
 }
