@@ -2,15 +2,8 @@
 
 # Author:     darren chamberlain <dlc@sevenroot.org>
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
+# Co-Author:  Mikhail Novosyolov <mikhailnov@dumalogiya.ru>
 #
-
-#######
-# Updated Oct 15 2004 by Tony Clayton <t ny-bashlib@clayt n.ca>
-#  * add safe_param() function with XSS and shell-invocation prevention
-#  * add extra "| tr -d '$`'" sanity check to name decoding to prevent shell
-#    invocation of param names.
-#  * ported function defs to be bash/ash compatible
-#######
 
 # bashlib is used by sourcing it at the beginning of scripts that
 # needs its functionality (by using the . or source commands).
@@ -19,8 +12,9 @@ PATH=/bin:/usr/bin
 
 #
 # Set version number
+# Must be an integer because bash cannot compare float numbers
 #
-VERSION="0.06"
+VERSION="2"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and
