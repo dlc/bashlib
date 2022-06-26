@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <title>bashlib - CGI programming with the bash shell</title>
+  </head>
+<body>
+    <div align="center">
+    <h1>bashlib - CGI programming with the bash shell</h1>
+     <font size="-1">
+     [ <a style="text-decoration:none" href="http://sourceforge.net/projects/bashlib">Project Page</a>
+     | <a style="text-decoration:none" href="#why">Why?</a>
+     | <a style="text-decoration:none" href="#news">bashlib news</a>
+     | <a style="text-decoration:none" href="#how">How it came about</a>
+     | <a style="text-decoration:none" href="#using">Using bashlib</a> ]<br>
+
+     [ <a style="text-decoration:none" href="./cvx.php">CVs eXtender</a>
+     | <a style="text-decoration:none" href="#dontlike">Something you don't like?</a>
+     | <a style="text-decoration:none" href="#download">Getting bashlib</a>
+     | <a style="text-decoration:none" href="#resources">Other Resources</a>
+     | <a style="text-decoration:none" href="mailto:dlc@users.sourceforge.net">Comments?</a> ]
+     </font>
+    </div>
+ <h2><a name="why">Why?</a></h2>
+  <p>bashlib is a shell script that makes CGI programming in the bash shell easier, or at least more tolerable. It contains a few functions that get called automatically and place form elements (from POSTs and GETs) and cookies in your environment. It also contains complete documentation on how to use these variables and how to set cookies manually.</p>
+ <h2><a name="news">Recent bashlib News</a></h2>
+  <p>The most recent version of bashlib will always be available from <a
+  href="src/bashlib-current.tar.gz">http://bashlib.sourceforge.net/src/bashlib-current.tar.gz</a> and will
+  be browsable at <a
+  href="src/bashlib-current/">http://bashlib.sourceforge.net/src/bashlib-current/</a>.</p>
+  <p>Version 0.4 (<a href="src/bashlib-0.4.tar.gz">download</a> or <a href="src/bashlib-0.4/">browse</a>) of bashlib, released March 12, 2002, is fully autoconfiscated.  To install it, run <code>./configure</code> as usual.  If you check out the CVS version, you'll need <code>autoconf</code> installed to create the configure script from configure.in.</p>
+  <p>I released version 0.3 (<a href="src/bashlib-0.3.tar.gz">download</a> or <a href="src/bashlib-0.3/">browse</a>)of bashlib on February 21, 2001. The only difference between 0.3 and 0.2 is that the tarball works. I've been testing it for a while, and it definitely seems stable enough for real use. The interface has changed a little; the sample below reflects these changes.</p>
+ <h2><a name="how">How this came about, and what it is useful for</a></h2>
+  <p>Things such as this are born of necessity. My ISP, while being incredibly useful in most ways, doesn't have a recent version of Perl available for their casual users (e.g., dial-up accounts, with web pages in http://www.isp.net/~mylogin/) -- Perl is a "value-added" service. This was a great source of frustration for me, since I am a Perl programmer by day. So, I began rooting (not literally) around for other methods of writing CGI scripts, and realized that the shell, which I spent most of my time using, was not only a great generaly purpose scripting environment, but also a good one for CGI scripts. This naturally led me to forms and cookies, and here we are today.</p>
+  <p>No, I really don't have this much free time. The current release is the result of about a days worth of work (on and off throughout the day), with some help. Well, that's not quite true -- 9 years of using Unix went into it as well.</p>
+ <h2><a name="using">Using bashlib</a></h2>
+  <p>Using bashlib is pretty straight-forward. More important, however, is knowing what to do with the variables once they come into your script and knowing how to write CGI scripts. (This script is not running here, for obvious reasons.)</p>
+  <pre>
+#!/bin/bash
+
+# this sources bashlib into your current environment
+. /usr/local/lib/bashlib
+
+echo "Content-type: text/html"
+echo ""
+
+# OK, so we've sent the header... now send some content
+echo "&lt;html&gt;&lt;title&gt;Crack This Server&lt;/title&gt;&lt;body&gt;"
+
+# print a "hello" if the username is filled out
+username=`param username`
+if [ -n "x$username" != "x" ] ; then
+    echo "&lt;h1&gt;Hello, $username&lt;/h1&gt;
+fi
+
+echo "&lt;h2&gt;Users on `/bin/hostname`&lt;/h2&gt;"
+echo "&lt;ul&gt;"
+
+# for each user in the passwd file, print their login and full name
+# bold them if they are the current user
+for user in $(cat /etc/passwd | awk -F: '{print $1 "\t" $5}') ; do
+    echo "&lt;li&gt;"
+    if [ "$username" = "$user" ] ; then
+        echo "&lt;strong&gt;$user&lt;/strong&gt;"
+    else
+        echo "$user"
+    fi
+    echo "&lt;/li&gt;"
+done
+echo "&lt;/ul&gt;"
+echo "&lt;/body&gt;&lt;/html&gt;"
+  </pre>
+
+<!-- Other Resources -->
+
+ <h2><a name="resources">Other Resoruces</a></h2>
+  <ul>
+  <li>I recommend checking out <a
+  href="http://bashish.sourceforge.net/">bashish</a> if you use bash often; it is dedicated to the configuration of bash. Although it isn't helpful for CGI programming in bash, it makes day to day usage of bash quite nice. To quote:</li>
+  <blockquote>
+Bashish is a theme engine for the console.<br />
+It lets you customize title, prompt, background, foreground, colors, font and a lot of other things.<br />
+Bashish is also very configurable, you can turn on and off nearly all features.<br />
+  </blockquote>
+  <li><a href="http://txt2regex.sourceforge.net/">^txt2regex$</a> is a Regular Expression "wizard", all written with bash2 builtins, that converts human sentences to RegExs. with a simple interface, you just answer to questions and build your own RegEx for a large variety of programs, like awk, ed, emacs, grep, perl, php, procmail, python, sed and vim. there are more than 20 supported programs. it's bash so download and run, no compilation needed.</li>
+  <li>For folks who do a lot of command-line-based web work, <a href="http://surfaw.sourceforge.net">surfaw</a> might be useful:</li>
+  <blockquote>
+    Surfraw (Shell Users' Revolutionary Front Rage Against the Web) provides a Unix command line interface to a variety of popular Web search engines and sites, including Google, Altavista, Babelfish, Raging, DejaNews, Research Index, Yahoo!, WeatherNews, Slashdot, freshmeat, and many others.
+  </blockquote>
+ <li>The <a href="http://www.linuxdoc.org/HOWTO/Bash-Prog-Intro-HOWTO.html">BASH Programming - Introduction HOW-TO</a> and <a href="http://linuxdoc.org/HOWTO/Adv-Bash-Scr-HOWTO/index.html">Advanced Bash-Scripting HOWTO: A guide to shell scripting, using Bash</a> are very, very useful.</li>
+ <li>I just came across Prentice Hall's 1996 book <a href="http://vig.prenhall.com/catalog/academic/product/1,4096,0134514947,00.html">Portable Shell Programming</a>, and it is wonderful. All the examples are pure Bourne shell, so they are (naturally) portable, and also very informative.</li>
+ <li>And, finally, while it's not free, David Tansley's <a
+ href="http://204.179.152.61/book/0,3828,0201674726,00.html">Linux &amp; Unix Shell Programming</a> is a wonderful resource (get it from <a href="http://www1.fatbrain.com/asp/bookinfo/bookinfo.asp?theisbn=0201674726&vm=">fatbrain</a>).</li>
+  </ul>
+
+<!-- Something you don't like? -->
+
+ <h2><a name="dontlike">Something you don't like?</h2>
+  <p>OK, so there's probably something in here you think should be different, could be better, etc. Well, drop me a line (email me at <a href="mailto:dlc@users.sourceforge.net">dlc@users.sourceforge.net</a>) and let me know. You can write it out in words ("bashlib should uuencode GIFs on the fly"), provide a patch (via <tt>diff -u</tt>), or rewrite the whole thing (try to keep it in shell, though). All reasonable emails will be read, and probably answered as well.</p>
+
+<!-- Getting bashlib -->
+
+ <h2><a name="download">Getting bashlib</a></h2>
+  <p>bashlib is a pretty short script (as libraries go), and all versions can be browsed <a href="./src/">here</a>. It is available for download from <a href="//sourceforge.net/">Sourceforge</a> at <a href="//bashlib.sourceforge.net/src/bashlib-0.4.tar.gz">http</a>.</p>
+  <p>bashlib is also available from anonymous <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/bashlib/">CVS</a>. The CVS repository can be checked out through anonymous (pserver) CVS. When prompted for a password for anonymous, simply press the Enter key.</p>
+<pre>
+cvs -d:pserver:anonymous@cvs.bashlib.sourceforge.net:/cvsroot/bashlib login 
+cvs -z3 -d:pserver:anonymous@cvs.bashlib.sourceforge.net:/cvsroot/bashlib co bashlib
+</pre>
+  <div align="center">
+    <a href="//sourceforge.net/"><img src="http://sourceforge.net/sflogo.php?group_id=9721&type=1" width="88" height="31" border="0" alt="SourceForge Logo"></a>
+  </div>
+</body></html>

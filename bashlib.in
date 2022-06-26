@@ -1,16 +1,9 @@
-#!/bin/bash
+#!@BASH@
 
 # Author:     darren chamberlain <dlc@sevenroot.org>
 # Co-Author:  Paul Bournival <paulb-ns@cajun.nu>
+# Co-Author:  Mikhail Novosyolov <mikhailnov@dumalogiya.ru>
 #
-
-#######
-# Updated Oct 15 2004 by Tony Clayton <t ny-bashlib@clayt n.ca>
-#  * add safe_param() function with XSS and shell-invocation prevention
-#  * add extra "| tr -d '$`'" sanity check to name decoding to prevent shell
-#    invocation of param names.
-#  * ported function defs to be bash/ash compatible
-#######
 
 # bashlib is used by sourcing it at the beginning of scripts that
 # needs its functionality (by using the . or source commands).
@@ -19,8 +12,9 @@ PATH=/bin:/usr/bin
 
 #
 # Set version number
+# Must be an integer because bash cannot compare float numbers
 #
-VERSION="0.05"
+VERSION="2"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Initialization stuff begins here. These things run immediately, and
@@ -153,11 +147,11 @@ fi
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #
 # Shameless plug, advertises verion.
-version {
+version() {
   echo "bashlib, version ${VERSION}"
 }
 
-version_html {
+version_html() {
   echo -n "<a href=\"http://sevenroot.org/dlc/2000/12/bashlib\">bashlib</a>,"
   echo "version ${VERSION}"
 }
@@ -178,7 +172,7 @@ param() {
   if [ $# -eq 1 ]; then
     name=$1
     name=$(echo ${name} | @SED@ -e 's/FORM_//')
-    value=$(@ENV@ | @GREP@ "^FORM_${name}" | @SED@ -e 's/FORM_//' | @CUT@ -d= -f2-)
+    value=$(@ENV@ | @GREP@ "^FORM_${name}=" | @SED@ -e 's/FORM_//' | @CUT@ -d= -f2-)
   elif [ $# -gt 1 ]; then
     name=$1
     shift
@@ -186,7 +180,9 @@ param() {
   else
     value=$(@ENV@ | @GREP@ '^FORM_' | @SED@ -e 's/FORM_//' | @CUT@ -d= -f1)
   fi
-  echo ${value}
+  # "+" is URL-encoded as "%2B", web server replaces spaces with "+", replace back,
+  # otherwise safe_param() just removes the "+" sign and looses the space.
+  echo "${value}" | @SED@ -e 's/+/ /'
   unset name
   unset value
 }
